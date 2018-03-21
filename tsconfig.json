@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "removeComments": true,
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "rootDir": ".",
+    "outDir": "./slider",           
+    "lib": ["es6", "dom"],
+  },
+  "files": [
+    "index.ts",              
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
