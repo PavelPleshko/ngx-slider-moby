@@ -1,6 +1,9 @@
 # Ngx Slider Moby.
 Reactive slider/scope slider component for angular.
 
+#### Screenshot
+![main_screen](screen.png)
+
 ## Get started
 
 ### Slider supports touch events for mobile devices. To enable it first install `hammerjs`:
