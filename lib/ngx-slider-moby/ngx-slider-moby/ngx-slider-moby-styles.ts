@@ -81,15 +81,12 @@ export const styles = `
 .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-thumb1:after, .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-thumb2:after {
   content: '';
   position: absolute;
-  width: 9px;
-  height: 9px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   transform: scale(1, 1);
   transition: inherit;
   background-color: inherit;
-  border-color: transparent;
-  border-width: 3px;
-  border-style: solid;
 }
 .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-active .ngx-slider-moby-thumb1:after, .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-active .ngx-slider-moby-thumb2:after {
   transform: scale(1.2, 1.2);
@@ -202,15 +199,12 @@ export const styles = `
 .ngx-banner-slider-vertical .ngx-slider-moby-thumb1:after, .ngx-banner-slider-vertical .ngx-slider-moby-thumb2:after {
   content: '';
   position: absolute;
-  width: 9px;
-  height: 9px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   transform: scale(1, 1);
   transition: inherit;
   background-color: inherit;
-  border-color: transparent;
-  border-width: 3px;
-  border-style: solid;
 }
 .ngx-banner-slider-vertical .ngx-slider-moby-active .ngx-slider-moby-thumb1:after, .ngx-banner-slider-vertical .ngx-slider-moby-active .ngx-slider-moby-thumb2:after {
   transform: scale(1.2, 1.2);
