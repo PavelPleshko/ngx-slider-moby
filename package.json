@@ -1,6 +1,6 @@
 {
   "name": "ngx-slider-moby",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Angular slider component",
   "main": "index.js",
   "typings": "./slider/index.d.ts",
