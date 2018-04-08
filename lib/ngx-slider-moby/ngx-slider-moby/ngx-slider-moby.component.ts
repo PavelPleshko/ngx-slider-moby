@@ -11,7 +11,7 @@ import {
   forwardRef,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Renderer
+  Renderer,AfterViewInit
 } from '@angular/core';
 import {UP_ARROW,DOWN_ARROW,RIGHT_ARROW,LEFT_ARROW} from './keycodes';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
@@ -87,7 +87,7 @@ export interface IUpdateOperation{
 })
 
 
-export class NgxSliderMobyComponent implements OnInit,OnDestroy,ControlValueAccessor  {
+export class NgxSliderMobyComponent implements OnInit,OnDestroy,ControlValueAccessor,AfterViewInit  {
 
 private timer:BehaviorSubject<any>=new BehaviorSubject(null);
 private pressed:number;
@@ -263,11 +263,14 @@ this.element = elementRef.nativeElement;
 ngOnInit(){
   ++sliderId;
   this.uniqueId = `slider-${sliderId}`;
-  this.getCurrentSliderDimensions();
   this.init(); 
   this.onResize();
 }
 
+ngAfterViewInit(){
+    this.getCurrentSliderDimensions();
+
+}
 onBlur(){
  this.isActive = false;
     this.onTouched();
@@ -302,7 +305,7 @@ this.percent = (whereTo/size);
 let percentage;
 if(this.isSliding){
   this.updateValueFromPercentage();
-  percentage = this.percent*100;
+  percentage = whereTo;
   this.fillTrack(percentage);
   this.applyCssToElement(this.sliderThumbLabel1,'transform',`scale(1) translate${axis}(${whereTo}px)`);
   this.applyCssToElement(this.thumb1,'transform',`translate${axis}(${whereTo}px)`);
@@ -338,7 +341,7 @@ let difference =Math.max(this.currentRange.to,this.currentRange.from)-Math.min(t
 
 fillTrack(percentage){
   let whatToFill = this.vertical ? 'height' : 'width';
-  this.renderer.setElementStyle(this.trackFill,whatToFill,`${percentage}%`);
+  this.renderer.setElementStyle(this.trackFill,whatToFill,`${percentage}px`);
 }
 
 updateValueFromPercentage(){
