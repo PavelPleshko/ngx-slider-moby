@@ -263,6 +263,7 @@ this.element = elementRef.nativeElement;
 ngOnInit(){
   ++sliderId;
   this.uniqueId = `slider-${sliderId}`;
+   this.getCurrentSliderDimensions();
   this.init(); 
   this.onResize();
 }
