@@ -81,15 +81,12 @@ export const styles = `
 .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-thumb1:after, .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-thumb2:after {
   content: '';
   position: absolute;
-  width: 9px;
-  height: 9px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   transform: scale(1, 1);
   transition: inherit;
   background-color: inherit;
-  border-color: transparent;
-  border-width: 3px;
-  border-style: solid;
 }
 .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-active .ngx-slider-moby-thumb1:after, .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-active .ngx-slider-moby-thumb2:after {
   transform: scale(1.2, 1.2);
@@ -109,7 +106,6 @@ export const styles = `
   top: -30px;
   border-radius: 4px;
   padding: .3em 1em;
-  animation: scaleUp 300ms forwards;
   transition: 300ms cubic-bezier(0.35, 0, 0.25, 1);
   transition-property: opacity,width,height,transform, border-radius;
   background: rgba(106, 27, 154, 0.7);
@@ -127,7 +123,7 @@ export const styles = `
   bottom: -14px;
 }
 .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-container:not(.ngx-slider-moby-thumb-label-show1) .ngx-slider-moby-thumb-label1, .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-container:not(.ngx-slider-moby-thumb-label-show2) .ngx-slider-moby-thumb-label2 {
-  animation: scaleDown 300ms forwards;
+  display:none;
 }
 
 .ngx-banner-slider-vertical {
@@ -165,7 +161,7 @@ export const styles = `
   background-color: rgba(117, 117, 117, 0.26);
 }
 .ngx-banner-slider-vertical .ngx-slider-moby-track-fill {
-  transition-duration: 400ms;
+  transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
   background-color: #6a1b9a;
   height: 0;
@@ -202,15 +198,12 @@ export const styles = `
 .ngx-banner-slider-vertical .ngx-slider-moby-thumb1:after, .ngx-banner-slider-vertical .ngx-slider-moby-thumb2:after {
   content: '';
   position: absolute;
-  width: 9px;
-  height: 9px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   transform: scale(1, 1);
   transition: inherit;
   background-color: inherit;
-  border-color: transparent;
-  border-width: 3px;
-  border-style: solid;
 }
 .ngx-banner-slider-vertical .ngx-slider-moby-active .ngx-slider-moby-thumb1:after, .ngx-banner-slider-vertical .ngx-slider-moby-active .ngx-slider-moby-thumb2:after {
   transform: scale(1.2, 1.2);
@@ -230,7 +223,6 @@ export const styles = `
   top: -8px;
   border-radius: 4px;
   padding: .3em 1em;
-  animation: scaleUp 300ms forwards;
   transition: 300ms cubic-bezier(0.35, 0, 0.25, 1);
   transition-property: opacity,width,height,transform, border-radius;
   background: rgba(106, 27, 154, 0.7);
@@ -247,9 +239,6 @@ export const styles = `
   border-top: 7px solid transparent;
   left: -14px;
 }
-.ngx-banner-slider-vertical .ngx-slider-moby-container:not(.ngx-slider-moby-thumb-label-show1) .ngx-slider-moby-thumb-label1, .ngx-banner-slider-vertical .ngx-slider-moby-container:not(.ngx-slider-moby-thumb-label-show2) .ngx-slider-moby-thumb-label2 {
-  animation: scaleDown 300ms forwards;
-}
 
 .ngx-banner-slider-disabled {
   pointer-events: none;
@@ -257,30 +246,5 @@ export const styles = `
 }
 .ngx-banner-slider-disabled .ngx-slider-moby-thumb-label1, .ngx-banner-slider-disabled .ngx-slider-moby-thumb-label2 {
   display: none !important;
-}
-
-@keyframes scaleDown {
-  from {
-    opacity: 1;
-    width: 20px;
-    height: 20px;
-  }
-  to {
-    width: 0;
-    height: 0;
-    opacity: 0;
-  }
-}
-@keyframes scaleUp {
-  from {
-    width: 0;
-    height: 0;
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-    width: 20px;
-    height: 20px;
-  }
 }
 `
