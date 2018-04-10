@@ -68,7 +68,7 @@ export interface IUpdateOperation{
       <div class="ngx-slider-moby-thumb-container1">
         <div class="ngx-slider-moby-thumb-position1">
           <div class="ngx-slider-moby-thumb1" id="thumb_handle-1"></div>
-          <div class="ngx-slider-moby-thumb-label1">
+          <div class="ngx-slider-moby-thumb-label1" [hidden]="!thumbLabel1">
             <span class="ngx-slider-moby-thumb-label-text1">{{ value1 }}</span>
           </div>
         </div>
@@ -76,7 +76,7 @@ export interface IUpdateOperation{
         <div class="ngx-slider-moby-thumb-container2">
         <div class="ngx-slider-moby-thumb-position2">
           <div class="ngx-slider-moby-thumb2" id="thumb_handle-2"></div>
-          <div class="ngx-slider-moby-thumb-label2">
+          <div class="ngx-slider-moby-thumb-label2" [hidden]="!thumbLabel2">
             <span class="ngx-slider-moby-thumb-label-text2">{{ value2 }}</span>
           </div>
         </div>
@@ -311,7 +311,7 @@ if(this.isSliding){
   this.applyCssToElement(this.sliderThumbLabel1,'transform',`scale(1) translate${axis}(${whereTo}px)`);
   this.applyCssToElement(this.thumb1,'transform',`translate${axis}(${whereTo}px)`);
 
-  this.valueChange.emit({ sliderId:this.uniqueId,value: this.value1,percent:+percentage.toFixed(0)});
+  this.valueChange.emit({ sliderId:this.uniqueId,value: this.value1,percent:+(this.percent*100).toFixed(0)});
 }
 }else if(position && position.type == 'range' && this.isSliding){
   let clientPosition = axis == 'Y' ? position.event.clientY : position.event.clientX;

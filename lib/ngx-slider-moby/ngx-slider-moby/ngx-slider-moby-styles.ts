@@ -255,11 +255,13 @@ export const styles = `
 
 @keyframes scaleDown {
   from {
+    display:inline-block;
     opacity: 1;
     width: 20px;
     height: 20px;
   }
   to {
+    display:none;
     width: 0;
     height: 0;
     opacity: 0;
@@ -267,11 +269,13 @@ export const styles = `
 }
 @keyframes scaleUp {
   from {
+      display:none;
     width: 0;
     height: 0;
     opacity: 0;
   }
   to {
+     display:inline-block;
     opacity: 1;
     width: 20px;
     height: 20px;
