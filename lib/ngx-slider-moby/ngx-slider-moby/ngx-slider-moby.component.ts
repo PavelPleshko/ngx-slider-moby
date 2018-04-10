@@ -618,6 +618,8 @@ handleKeydowns(key:number){
       let percentage = this.percent*100;
       this.fillTrack(percentage);
       let axis = this.vertical ? 'Y' : 'X';
+        this.valueChange.emit({ sliderId:this.uniqueId,value: this.value1,percent:+(this.percent*100).toFixed(0)});
+
       this.applyCssToElement(this.thumb1,'transform',`translate${axis}(${distance}px)`);
       this.applyCssToElement(this.sliderThumbLabel1,'transform',`translate${axis}(${distance}px)`);
  }

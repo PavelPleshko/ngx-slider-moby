@@ -81,12 +81,15 @@ export const styles = `
 .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-thumb1:after, .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-thumb2:after {
   content: '';
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   transform: scale(1, 1);
   transition: inherit;
   background-color: inherit;
+  border-color: transparent;
+  border-width: 3px;
+  border-style: solid;
 }
 .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-active .ngx-slider-moby-thumb1:after, .slider-main:not(.ngx-banner-slider-vertical) .ngx-slider-moby-active .ngx-slider-moby-thumb2:after {
   transform: scale(1.2, 1.2);
@@ -199,12 +202,15 @@ export const styles = `
 .ngx-banner-slider-vertical .ngx-slider-moby-thumb1:after, .ngx-banner-slider-vertical .ngx-slider-moby-thumb2:after {
   content: '';
   position: absolute;
-  width: 13px;
-  height: 13px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   transform: scale(1, 1);
   transition: inherit;
   background-color: inherit;
+  border-color: transparent;
+  border-width: 3px;
+  border-style: solid;
 }
 .ngx-banner-slider-vertical .ngx-slider-moby-active .ngx-slider-moby-thumb1:after, .ngx-banner-slider-vertical .ngx-slider-moby-active .ngx-slider-moby-thumb2:after {
   transform: scale(1.2, 1.2);
@@ -255,13 +261,11 @@ export const styles = `
 
 @keyframes scaleDown {
   from {
-    display:inline-block;
     opacity: 1;
     width: 20px;
     height: 20px;
   }
   to {
-    display:none;
     width: 0;
     height: 0;
     opacity: 0;
@@ -269,13 +273,11 @@ export const styles = `
 }
 @keyframes scaleUp {
   from {
-      display:none;
     width: 0;
     height: 0;
     opacity: 0;
   }
   to {
-     display:inline-block;
     opacity: 1;
     width: 20px;
     height: 20px;
