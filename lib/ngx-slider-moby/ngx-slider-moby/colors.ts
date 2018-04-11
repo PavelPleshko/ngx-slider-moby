@@ -20,5 +20,13 @@ export const colors = {
   'yellow':{
   	colorRgb:'rgb(255,234,0)',
   	colorRgba:'rgba(255,234,0,.7)'
+  },
+  'black':{
+    colorRgb:'rgb(0,0,0)',
+    colorRgba:'rgba(0,0,0,.7)'
+  },
+  'grey':{
+    colorRgb:'rgb(158,158,158)',
+    colorRgba:'rgba(158,158,158,.7)'
   }
 }

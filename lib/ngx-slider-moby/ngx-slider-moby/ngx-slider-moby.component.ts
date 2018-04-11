@@ -91,7 +91,8 @@ export class NgxSliderMobyComponent implements OnInit,OnDestroy,ControlValueAcce
 
 private timer:BehaviorSubject<any>=new BehaviorSubject(null);
 private pressed:number;
-private currentRange:any = {from:50,to:70};
+private currentRange:{from:number,to:number} = {from:null,to:null};
+private defaultCurrentRange:any = {from:50,to:70};
 private isMobileDevice:boolean;
 private uniqueId:string;
 private colorMap:any;
@@ -199,6 +200,7 @@ get value1(){
 }
 set value1(val:any){
   if(val != this._value1){
+ 
     this._value1 = Number(this.limit(val));
     if(this.range){
       this._controlValueAccessorChangeFn({from:val,to:this.value2})
@@ -270,6 +272,12 @@ ngOnInit(){
 
 ngAfterViewInit(){
     this.getCurrentSliderDimensions();
+    if(this.range){
+      this.updatePositionFromValue(this.value1,this.value2);
+    }else{
+      this.updatePositionFromValue(this.value1,undefined);
+    }
+    
 
 }
 onBlur(){
@@ -290,6 +298,31 @@ onFocus(){
   this.cdr.detectChanges();
 }
 
+updatePositionFromValue(value1:number,value2?:number){
+  if(typeof value2 == 'undefined'){
+     let axis:string = this.vertical ? 'Y' : 'X';
+      this.percent = value1/this.max_value;
+    let whereTo = this.currentDimensions.width*this.percent;
+       this.fillTrack(whereTo);
+        this.applyCssToElement(this.sliderThumbLabel1,'transform',`scale(1) translate${axis}(${whereTo}px)`);
+  this.applyCssToElement(this.thumb1,'transform',`translate${axis}(${whereTo}px)`);  
+}else{
+  if(value1>value2 || !value1 || !value2 || value1 == value2){
+    this.currentRange.from = this.defaultCurrentRange.from;
+    this.currentRange.to = this.defaultCurrentRange.to;
+  }else{
+
+   this.currentRange.from = value1/this.max_value*100;
+      this.currentRange.to = value2/this.max_value*100;
+  }
+  this.updateRangeStyles();
+  }
+      
+
+
+}
+
+
 updatePosition(position){
  this.cdr.detach();//changes will be detected once we set a value
   let axis:string = this.vertical ? 'Y' : 'X';
@@ -305,7 +338,7 @@ let whereTo = Math.max(((clientPosition-offset)),0);
 this.percent = (whereTo/size);
 let percentage;
 if(this.isSliding){
-  this.updateValueFromPercentage();
+  this.value1 = this.getValueFromStep(this.percent);
   percentage = whereTo;
   this.fillTrack(percentage);
   this.applyCssToElement(this.sliderThumbLabel1,'transform',`scale(1) translate${axis}(${whereTo}px)`);
@@ -343,12 +376,6 @@ let difference =Math.max(this.currentRange.to,this.currentRange.from)-Math.min(t
 fillTrack(percentage){
   let whatToFill = this.vertical ? 'height' : 'width';
   this.renderer.setElementStyle(this.trackFill,whatToFill,`${percentage}px`);
-}
-
-updateValueFromPercentage(){
-   let exactValue = Number((this.max_value*this.percent).toFixed(0));
-   let closestValue = Math.round((exactValue - this.min_value) / this.step) * this.step + this.min_value;
-   this.value1 = closestValue;
 }
 
 getCurrentSliderDimensions(){
@@ -409,12 +436,10 @@ applyColorPallete():void{
 
 initRangeStyles(){
   this.renderer.setElementStyle(this.thumb2,'display','block');
-  this.updateRangeStyles();
 }
 
 updateRangeStyles(from = this.currentRange.from,to = this.currentRange.to){
   to = to > 100 ? 100 : to;
-  let y = to-from;
   let offsetLeft = from;
   let offsetRight = 100-to;
   
@@ -433,8 +458,17 @@ updateRangeStyles(from = this.currentRange.from,to = this.currentRange.to){
 updateRangeValues(from,to){
   from = from/100;
   to=to/100;
-  this.value1 = Math.round(this.max_value*from);
-  this.value2 = Math.round(this.max_value*to);
+  this.value1 =this.getValueFromStep(from);
+  this.value2 =this.getValueFromStep(to);
+  
+}
+
+getValueFromStep(percentage){
+  let exactValue = Number((this.max_value*percentage).toFixed(1));
+   let closestValue = Math.round((exactValue - this.min_value)/ this.step)*100* this.step/100 + this.min_value;
+
+  let returnValue = exactValue >= this.max_value ? exactValue : closestValue;
+  return returnValue;
 }
 
 initDesktopObs(){
@@ -496,6 +530,7 @@ let keydown = fromEvent(this.element,'keydown').pipe(filter((event:KeyboardEvent
   this.thumbLabel1 = true; //we can't toggle here,bcs keydown supposes label is always visible
   this.isSliding = true;
   this.isActive = true;
+  val = +Number(val.toFixed(1));
   this.handleKeydowns(val);
   this.cdr.detectChanges();
 }),takeUntil(keyup),repeat()).subscribe();
@@ -615,8 +650,8 @@ handleKeydowns(key:number){
        distance = this.direction == 'ltr' ? this.increment() : this.decrement()
     break;
   }
-      let percentage = this.percent*100;
-      this.fillTrack(percentage);
+     
+      this.fillTrack(distance);
       let axis = this.vertical ? 'Y' : 'X';
         this.valueChange.emit({ sliderId:this.uniqueId,value: this.value1,percent:+(this.percent*100).toFixed(0)});
 
@@ -629,7 +664,7 @@ increment(){
 this.percent += this.stepDistance;
 let size = this.vertical ? this.currentDimensions.height : this.currentDimensions.width;
 let distance = size*this.percent;
-this.value1 +=this.step;
+this.value1  = Math.round((this.value1 + this.step)*100)/100;
 return distance;
 
 }
@@ -638,7 +673,7 @@ decrement(){
 this.percent -=this.stepDistance;
 let size = this.vertical ? this.currentDimensions.height : this.currentDimensions.width;
 let distance = size*this.percent;
-this.value1 -=this.step;
+this.value1  = Math.round((this.value1 - this.step)*100)/100;
 return distance;
 }
 
