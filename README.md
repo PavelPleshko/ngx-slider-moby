@@ -78,7 +78,7 @@ import 'hammerjs';
 
 #### `focused` - focus event emits boolean `true` or `false`;
 
-### Update 1.0.8 info.
+### Update 1.1.0 info.
 1. Added colors 'black','grey'.
 2. Added support of floating `step`.
 3. Fixed some bugs.
