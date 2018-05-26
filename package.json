@@ -1,6 +1,6 @@
 {
-  "name": "ngx-slider",
-  "version": "0.0.0",
+  "name": "ngx-slider-moby",
+  "version": "1.1.0",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -33,17 +33,34 @@
     "@types/jasminewd2": "~2.0.2",
     "@types/node": "~6.0.60",
     "codelyzer": "^4.0.1",
-    "jasmine-core": "~2.6.2",
-    "jasmine-spec-reporter": "~4.1.0",
-    "karma": "~1.7.0",
-    "karma-chrome-launcher": "~2.1.1",
-    "karma-cli": "~1.0.1",
-    "karma-coverage-istanbul-reporter": "^1.2.1",
-    "karma-jasmine": "~1.1.0",
-    "karma-jasmine-html-reporter": "^0.2.2",
     "protractor": "~5.1.2",
     "ts-node": "~3.2.0",
     "tslint": "~5.7.0",
     "typescript": "~2.4.2"
+  },
+
+
+  
+  "description": "Angular slider component",
+  "main": "index.js",
+  "typings": "./slider/index.d.ts",
+  "keywords": [
+    "slider"
+  ],
+  "author": "Pavel Pleshko",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PavelPleshko/ngx-slider-moby"
+  },
+  "bugs": {
+    "url": "https://github.com/PavelPleshko/ngx-slider-moby/issues"
+  },
+  "readme": "https://github.com/PavelPleshko/ngx-slider-moby/blob/master/README.md",
+  "peerDependencies": {
+    "@angular/common": ">=4.0.0",
+    "@angular/forms": ">=4.0.0",
+    "@angular/core": ">=4.0.0",
+    "rxjs": ">=5.0.0",
+    "zone.js": "^0.8.14"
   }
 }

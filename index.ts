@@ -1,0 +1,1 @@
+export * from './lib/ngx-slider-moby/ngx-slider-moby.module';

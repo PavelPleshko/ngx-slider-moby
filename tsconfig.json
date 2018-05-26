@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "compileOnSave": false,
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
@@ -17,3 +18,25 @@
     ]
   }
 }
+=======
+  "compilerOptions": {
+    "removeComments": true,
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "rootDir": ".",
+    "outDir": "./slider",           
+    "lib": ["es6", "dom"],
+  },
+  "files": [
+    "index.ts",              
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+>>>>>>> d0330bcebe2e48f6102c2059c706db73323eebc0
