@@ -1,3 +1,4 @@
+Component is not maintained at the moment. But planning in the future.
 
 # Ngx Slider Moby.
 Reactive slider/scope slider component for angular.
