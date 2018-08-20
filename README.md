@@ -17,7 +17,7 @@ Live demo: https://pavelpleshko-slider-moby.now.sh
 
 ### Include `NgxSliderMobyModule` into your module like so:
 ```
-import { NgxSliderMobyModule } from 'ngx-slider-moby/slider';
+import { NgxSliderMobyModule } from 'ngx-slider-moby';
 ...
 @NgModule({
   imports: [
