@@ -1,5 +1,9 @@
+Component is not maintained at the moment. But planning in the future.
+
 # Ngx Slider Moby.
 Reactive slider/scope slider component for angular.
+
+Live demo: https://pavelpleshko-slider-moby.now.sh
 
 #### Screenshot
 ![main_screen](screen.png)
@@ -87,6 +91,4 @@ import 'hammerjs';
 1. Added colors 'black','grey'.
 2. Added support of floating `step`.
 3. Fixed some bugs.
-
-
 

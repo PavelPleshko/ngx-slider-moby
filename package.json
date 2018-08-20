@@ -7,7 +7,6 @@
     "range slider"
   ],
   "author": "Pavel Pleshko",
-  "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/PavelPleshko/ngx-slider-moby"
