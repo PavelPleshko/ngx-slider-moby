@@ -1,5 +1,3 @@
-Component is not maintained at the moment. But planning in the future.
-
 # Ngx Slider Moby.
 Reactive slider/scope slider component for angular.
 
@@ -27,13 +25,6 @@ import { NgxSliderMobyModule } from 'ngx-slider-moby/slider';
   ],
 })
 export class YourModule { }
-```
-
-### In your component do not forget to import `hammerjs` to enable touch events, like so:
-```
-...
-import 'hammerjs';
-...your code 
 ```
 
 ### Inclusion of module will give you access to the slider component which you can include in your components. Example:
