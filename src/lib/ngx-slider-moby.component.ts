@@ -15,17 +15,11 @@ import {
 } from '@angular/core';
 import {UP_ARROW,DOWN_ARROW,RIGHT_ARROW,LEFT_ARROW} from './keycodes';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
-import {Observable} from 'rxjs/Observable';
+import {Observable,BehaviorSubject,timer,fromEvent,Subscription} from 'rxjs';
 import {tap,map,merge,takeUntil,mergeMap,take,
   throttleTime,delay,switchMap,mapTo,filter,repeat} from 'rxjs/operators';
-import {timer} from 'rxjs/observable/timer';
-import {fromEvent} from 'rxjs/observable/fromEvent';
-import {Subscription} from 'rxjs/Subscription';
-
 import {elementsAlphaConfig,IElementWithAlpha} from './element-styles.config';
 import {colors} from './colors';
-import {styles} from './ngx-slider-moby-styles';
 
 export var sliderId = 0;
 const MIN_AUTO_TICK_SEPARATION = 30;
@@ -49,7 +43,7 @@ export interface IUpdateOperation{
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [MD_SLIDER_VALUE_ACCESSOR],
-  styles:[styles],
+  styleUrls:['./ngx-slider-moby.component.css'],
   host: {
     'tabindex': '0',
     'class':'slider-main',
@@ -57,37 +51,7 @@ export interface IUpdateOperation{
     '(focus)':'onFocus()',
     '(window:resize)':'onResize($event)'
   },
-  template:`<div class="ngx-slider-moby-wrapper">
-    <div class="ngx-slider-moby-container"
-       [class.ngx-slider-moby-sliding]="isSliding && isActive"
-       [class.ngx-slider-moby-active]="isActive"
-       [ngClass]="{'ngx-slider-moby-thumb-label-show1':thumbLabel1,'ngx-slider-moby-thumb-label-show2':thumbLabel2}">
-      <div class="ngx-slider-moby-track-container">
-        <div class="ngx-slider-moby-track"></div>
-        <div class="ngx-slider-moby-track ngx-slider-moby-track-fill"></div>
-        <div class="ngx-slider-moby-tick-container"></div>
-        <div class="ngx-slider-moby-last-tick-container"></div>
-      </div>
-      <div class="ngx-slider-moby-thumb-container1">
-        <div class="ngx-slider-moby-thumb-position1">
-          <div class="ngx-slider-moby-thumb1" id="thumb_handle-1"></div>
-          <div class="ngx-slider-moby-thumb-label1" [hidden]="!thumbLabel1">
-            <span class="ngx-slider-moby-thumb-label-text1">{{ value1 }}</span>
-          </div>
-        </div>
-      </div>
-        <div class="ngx-slider-moby-thumb-container2">
-        <div class="ngx-slider-moby-thumb-position2">
-          <div class="ngx-slider-moby-thumb2" id="thumb_handle-2"></div>
-          <div class="ngx-slider-moby-thumb-label2" [hidden]="!thumbLabel2">
-            <span class="ngx-slider-moby-thumb-label-text2">{{ value2 }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  `
-
+  templateUrl:'./ngx-slider-moby.component.html'
 })
 
 
@@ -96,7 +60,7 @@ export class NgxSliderMobyComponent implements OnInit,OnDestroy,ControlValueAcce
 
 private timer:BehaviorSubject<any>=new BehaviorSubject(null);
 private pressed:number;
-currentRange:{from:number,to:number} = {from:null,to:null};
+currentRange:{from:number,to:number} = {from:0,to:0};
 defaultCurrentRange:any = {from:50,to:70};
 private isMobileDevice:boolean;
 private uniqueId:string;
@@ -108,7 +72,7 @@ stepDistance:number;
 
 //mobile observables
 mobileSubscriptions:Subscription[] = [];
-touchEvent;
+touchEvent:any;
 onTap:Observable<any>;
 onTouchStart1:Observable<any>;
 onTouchStart2:Observable<any>;
@@ -122,7 +86,7 @@ commonSubscriptions:Subscription[]=[];
 timer$:Observable<any>;
 //listeners end
 //elements
-element; //main
+element:any; //main
 thumb1:HTMLElement;
 thumb2:HTMLElement;
 track:HTMLElement;
@@ -200,6 +164,28 @@ set thumbLabel2(val:boolean){
  }
 _thumbLabel2:boolean = false;
 
+@Input()
+get min_value(){
+  return this._min_value || 0;
+}
+set min_value(val:any){
+    val = Number(val);
+    if(typeof val !== 'number'){
+      val = 0;
+    }
+    this._min_value = Number(val);
+}
+_min_value:number;
+
+@Input()
+get max_value(){
+  return this._max_value || 100;
+}
+set max_value(val:any){
+    this._max_value = Number(val);
+}
+_max_value:number;
+
 
 @Input('value_from')
 get value1(){
@@ -207,8 +193,7 @@ get value1(){
 }
 set value1(val:any){
   if(val != this._value1){
- 
-    this._value1 = Number(this.limit(val));
+    this._value1 = Number(this.clamp(val,this.min_value,this.max_value));
     if(this.range){
       this._controlValueAccessorChangeFn({from:val,to:this.value2})
     }else{
@@ -236,28 +221,6 @@ set value2(val:any){
    this.cdr.detectChanges();
 }
 _value2:number;
-
-@Input()
-get min_value(){
-  return this._min_value || 0;
-}
-set min_value(val:any){
-    val = Number(val);
-    if(typeof val !== 'number'){
-      val = 0;
-    }
-    this._min_value = Number(val);
-}
-_min_value:number;
-
-@Input()
-get max_value(){
-  return this._max_value || 100;
-}
-set max_value(val:any){
-    this._max_value = Number(val);
-}
-_max_value:number;
 
 
 get percent(){
@@ -332,7 +295,7 @@ updatePositionFromValue(value1:number,value2?:number){
 }
 
 
-updatePosition(position){
+updatePosition(position:any){
   this.cdr.detach();//changes will be detected once we set a value
   let axis:string = this.vertical ? 'Y' : 'X';
   let size = axis == 'Y' ? this.currentDimensions.height : this.currentDimensions.width;
@@ -352,11 +315,13 @@ if(position && position.type === 'single'){
 }else if(position && position.type === 'range' && this.isSliding){
   let clientPosition = axis == 'Y' ? position.event.clientY : position.event.clientX;
   
-  let start,end;
+  let start='from';
+  let end = 'to';
   start = this.pressed == 1 ? 'from' : 'to';
   end = this.pressed == 2 ? 'to' : 'from';
   let whereTo =  Math.max(Math.round((clientPosition-offset)),0);
-  this.currentRange[start] = Number((((whereTo/size))*100));
+  let range = this.currentRange as any;
+  range[start] = Number((((whereTo/size))*100));
   let difference =Math.max(this.currentRange.to,this.currentRange.from)-Math.min(this.currentRange.to,this.currentRange.from);
  if(difference<this.min_distance){
    end == 'from' ? (this.currentRange.to +=(this.min_distance-difference)) : (this.currentRange.from -=(this.min_distance-difference));
@@ -376,7 +341,7 @@ if(position && position.type === 'single'){
   }  
 }
 
-fillTrack(amount){
+fillTrack(amount:number){
   let whatToFill = this.vertical ? 'height' : 'width';
   this.renderer.setElementStyle(this.trackFill,whatToFill,`${amount}px`);
 }
@@ -390,7 +355,7 @@ init(){
   this.initColorPallete();
   this.initElements();
   this.applyColorPallete();
-  this.updateSlider = new BehaviorSubject<IUpdateOperation>(null);
+  this.updateSlider = new BehaviorSubject<IUpdateOperation | any>(null);
   let update = this.updateSlider.pipe(tap(val=>this.updatePosition(val))).subscribe();
   this.timer$ = this.timer.pipe(switchMap(val=>timer(800).pipe(tap((val)=>{
   this.toggleThumbLabel(val);
@@ -403,7 +368,8 @@ init(){
 }
 
 initColorPallete():void{
-this.colorMap=colors[this.color];
+ let colorConfig = colors as any;
+this.colorMap=colorConfig[this.color];
 if(!this.colorMap){
   throw Error('Provided color doesn\'t exist in available colors. Check the documentation please.')
 }
@@ -443,9 +409,11 @@ applyColorPallete():void{
  
 }
 
-attachToInstance(elements:IElementWithAlpha[]):IElementWithAlpha[]{
-  return elements.map(el=>{
-    return {...el,element:this[el.element]}
+attachToInstance(elements:IElementWithAlpha[]):any[]{
+  return elements.map((el:IElementWithAlpha)=>{
+    const element:(keyof IElementWithAlpha) = el.element;
+    const component = this as any;
+    return {...el,element:component[element]}
   })
 }
 
@@ -485,13 +453,12 @@ getRangeOffsetsInPixels(isVertical:boolean=false,offsets:any):{offsetThumb1:numb
     }
 }
 
-updateRangeValues(from,to){
+updateRangeValues(from:number,to:number){
   this.value1 =this.getValueFromStep(from/100);
   this.value2 =this.getValueFromStep(to/100);
 }
 
-getValueFromStep(percentage){
-  percentage = percentage;
+getValueFromStep(percentage:number){
   let exactValue = Number((this.max_value*percentage).toFixed(0));
   let closestValue = Math.round((exactValue - this.min_value)/ this.step) * 100 * this.step/100 + this.min_value;
   let returnValue = exactValue <= this.max_value ? exactValue : closestValue;
@@ -659,13 +626,13 @@ onResize(){
   }
 
 //key controls
-onKeyUp(event){
+onKeyUp(event:any){
   this.toggleStates();
 }
 
 handleKeydowns(key:number){
  if(!this.range){
-   let distance;
+   let distance:number=0;
      this.toggleStates();
   switch (key) {
     case LEFT_ARROW:
@@ -704,11 +671,11 @@ return distance;
 }
 
 //helpers
-limit(val){
+limit(val:any){
 return Math.max((val > this.max_value ? this.max_value : val),this.min_value);
 }
 
-applyCssToElement(element,styleName,value){
+applyCssToElement(element:HTMLElement,styleName:string,value:string){
   this.renderer.setElementStyle(element,styleName,value);
 }
 

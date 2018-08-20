@@ -1,14 +1,10 @@
 {
   "name": "ngx-slider-moby",
-  "version": "1.1.3",
+  "version": "2.0.5",
   "description": "Angular slider component",
-  "main": "index.js",
-  "typings": "./slider/index.d.ts",
-  "scripts": {
-    "prepublish": "tsc"
-  },
   "keywords": [
-    "slider"
+    "slider",
+    "range slider"
   ],
   "author": "Pavel Pleshko",
   "license": "ISC",
@@ -20,21 +16,11 @@
     "url": "https://github.com/PavelPleshko/ngx-slider-moby/issues"
   },
   "readme": "https://github.com/PavelPleshko/ngx-slider-moby/blob/master/README.md",
-  "devDependencies": {
-    "typescript": "^2.7.2"
-  },
-  "dependencies": {
-    "@angular/common": ">=4.0.0",
-    "@angular/forms": ">=4.0.0",
-    "@angular/core": ">=4.0.0",
-    "rxjs": ">=5.0.0",
-    "zone.js": "^0.8.14"
-  },
   "peerDependencies": {
-    "@angular/common": ">=4.0.0",
-    "@angular/forms": ">=4.0.0",
-    "@angular/core": ">=4.0.0",
-    "rxjs": ">=5.0.0",
-    "zone.js": "^0.8.14"
+    "@angular/common": "^6.0.0-rc.0 || ^6.0.0",
+    "@angular/core": "^6.0.0-rc.0 || ^6.0.0",
+    "@angular/forms": "^6.0.0",
+    "rxjs": "^6.0.0",
+    "zone.js": "~0.8.26"
   }
 }

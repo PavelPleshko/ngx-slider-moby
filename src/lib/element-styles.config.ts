@@ -1,6 +1,6 @@
 
 export interface IElementWithAlpha{
-	element:string;
+	element: string | any;
 	alpha:boolean;
 }
 

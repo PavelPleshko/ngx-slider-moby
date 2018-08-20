@@ -1,4 +1,4 @@
-export const styles = `
+
 .slider-main:not(.ngx-banner-slider-vertical) {
   height: 48px;
   min-width: 128px;
@@ -219,6 +219,7 @@ export const styles = `
  .ngx-banner-slider-vertical .ngx-slider-moby-thumb-label2:after {
   content: '';
   position: absolute;
+  display:block;
   border-color: inherit;
   border-width: 7px;
   border-style: solid;
@@ -240,4 +241,3 @@ export const styles = `
 .ngx-banner-slider-disabled .ngx-slider-moby-thumb-label2 {
   display: none !important;
 }
-`

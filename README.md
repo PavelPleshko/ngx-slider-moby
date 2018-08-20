@@ -6,8 +6,7 @@ Reactive slider/scope slider component for angular.
 
 ## Get started
 
-### Slider supports touch events for mobile devices. To enable it first install `hammerjs`:
-`npm install hammerjs --save`
+### Slider supports touch events for mobile devices.
 
 ### Install package itself
 `npm install ngx-slider-moby --save`
@@ -49,6 +48,8 @@ import 'hammerjs';
 #### NOTE: In case when you are using `[range]="true"` form control value will be as follows:
 `{from:20,to:55}`
 
+#### NOTE: If you want to use vertical slider specifying `[vertical]="true"` parent's height should be also specified otherwise component will behave unexpectedly.
+
 ## Inputs
 
 
@@ -77,6 +78,10 @@ import 'hammerjs';
 #### `blurred` - blur event emits boolean `true` or `false`;
 
 #### `focused` - focus event emits boolean `true` or `false`;
+
+### Update 2.0.0 info.
+1. Major bug fixes.
+2. Animation runs smoother.
 
 ### Update 1.1.0 info.
 1. Added colors 'black','grey'.

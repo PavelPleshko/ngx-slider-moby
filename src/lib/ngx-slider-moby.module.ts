@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
+import { NgxSliderMobyComponent } from './ngx-slider-moby.component';
 import { CommonModule } from '@angular/common';
-import {NgxSliderMobyComponent} from './ngx-slider-moby/ngx-slider-moby.component';
+
 @NgModule({
-  imports: [
-    CommonModule
+  imports: [CommonModule
   ],
   declarations: [NgxSliderMobyComponent],
-  exports:[NgxSliderMobyComponent]
+  exports: [NgxSliderMobyComponent]
 })
 export class NgxSliderMobyModule { }
