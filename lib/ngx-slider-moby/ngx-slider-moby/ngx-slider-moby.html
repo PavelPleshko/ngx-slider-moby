@@ -1,0 +1,29 @@
+<div class="ngx-slider-moby-wrapper">
+    <div class="ngx-slider-moby-container"
+       [class.ngx-slider-moby-sliding]="isSliding && isActive"
+       [class.ngx-slider-moby-active]="isActive"
+       [ngClass]="{'ngx-slider-moby-thumb-label-show1':thumbLabel1,'ngx-slider-moby-thumb-label-show2':thumbLabel2}">
+      <div class="ngx-slider-moby-track-container">
+        <div class="ngx-slider-moby-track"></div>
+        <div class="ngx-slider-moby-track ngx-slider-moby-track-fill"></div>
+        <div class="ngx-slider-moby-tick-container"></div>
+        <div class="ngx-slider-moby-last-tick-container"></div>
+      </div>
+      <div class="ngx-slider-moby-thumb-container1">
+        <div class="ngx-slider-moby-thumb-position1">
+          <div class="ngx-slider-moby-thumb1" id="thumb_handle-1"></div>
+          <div class="ngx-slider-moby-thumb-label1" [hidden]="!thumbLabel1">
+            <span class="ngx-slider-moby-thumb-label-text1">{{ value1 }}</span>
+          </div>
+        </div>
+      </div>
+        <div class="ngx-slider-moby-thumb-container2">
+        <div class="ngx-slider-moby-thumb-position2">
+          <div class="ngx-slider-moby-thumb2" id="thumb_handle-2"></div>
+          <div class="ngx-slider-moby-thumb-label2" [hidden]="!thumbLabel2">
+            <span class="ngx-slider-moby-thumb-label-text2">{{ value2 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

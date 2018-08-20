@@ -22,9 +22,10 @@ import {tap,map,merge,takeUntil,mergeMap,take,
 import {timer} from 'rxjs/observable/timer';
 import {fromEvent} from 'rxjs/observable/fromEvent';
 import {Subscription} from 'rxjs/Subscription';
+
+import {elementsAlphaConfig,IElementWithAlpha} from './element-styles.config';
 import {colors} from './colors';
 import {styles} from './ngx-slider-moby-styles';
-import 'hammerjs';
 
 export var sliderId = 0;
 const MIN_AUTO_TICK_SEPARATION = 30;
@@ -40,6 +41,9 @@ export interface IUpdateOperation{
 }
 
 
+
+
+
 @Component({
   selector: 'ngx-slider-moby',
   encapsulation: ViewEncapsulation.None,
@@ -53,8 +57,7 @@ export interface IUpdateOperation{
     '(focus)':'onFocus()',
     '(window:resize)':'onResize($event)'
   },
-  template:`
-  <div class="ngx-slider-moby-wrapper">
+  template:`<div class="ngx-slider-moby-wrapper">
     <div class="ngx-slider-moby-container"
        [class.ngx-slider-moby-sliding]="isSliding && isActive"
        [class.ngx-slider-moby-active]="isActive"
@@ -84,18 +87,20 @@ export interface IUpdateOperation{
     </div>
   </div>
   `
+
 })
+
 
 
 export class NgxSliderMobyComponent implements OnInit,OnDestroy,ControlValueAccessor,AfterViewInit  {
 
 private timer:BehaviorSubject<any>=new BehaviorSubject(null);
 private pressed:number;
-private currentRange:{from:number,to:number} = {from:null,to:null};
-private defaultCurrentRange:any = {from:50,to:70};
+currentRange:{from:number,to:number} = {from:null,to:null};
+defaultCurrentRange:any = {from:50,to:70};
 private isMobileDevice:boolean;
 private uniqueId:string;
-private colorMap:any;
+colorMap:any;
 isActive:boolean = false;
 isSliding:boolean = false;
 stepDistance:number;
@@ -124,6 +129,8 @@ track:HTMLElement;
 sliderThumbLabel1:HTMLElement;
 sliderThumbLabel2:HTMLElement;
 trackFill:HTMLElement;
+mover1:HTMLElement;
+mover2:HTMLElement;
 //elements end
 
 //output events
@@ -146,7 +153,7 @@ currentDimensions:ClientRect;
 @Input() showThumbLabels:boolean = true;
 @Input() readonly step:number = 1;
 @Input() readonly direction:'ltr' | 'rtl' = 'ltr';
-@Input() readonly color:string = 'purple';
+@Input() color:string = 'purple';
 
 @Input()
  @HostBinding('class.ngx-banner-slider-disabled')
@@ -235,13 +242,17 @@ get min_value(){
   return this._min_value || 0;
 }
 set min_value(val:any){
+    val = Number(val);
+    if(typeof val !== 'number'){
+      val = 0;
+    }
     this._min_value = Number(val);
 }
 _min_value:number;
 
 @Input()
 get max_value(){
-  return this._max_value || 500;
+  return this._max_value || 100;
 }
 set max_value(val:any){
     this._max_value = Number(val);
@@ -281,41 +292,39 @@ ngAfterViewInit(){
 
 }
 onBlur(){
- this.isActive = false;
+    this.isActive = false;
     this.onTouched();
     this.element.blur();
     this.focused.next(false);
-  this.blurred.next(true);
-  this.cdr.detectChanges();
+    this.blurred.next(true);
+    this.cdr.detectChanges();
 }
 
 onFocus(){
-  this.isActive = true;
-  this.onTouched();
-  this.element.focus();
-  this.focused.next(true);
-  this.blurred.next(false);
-  this.cdr.detectChanges();
+    this.isActive = true;
+    this.onTouched();
+    this.element.focus();
+    this.focused.next(true);
+    this.blurred.next(false);
+    this.cdr.detectChanges();
 }
 
 updatePositionFromValue(value1:number,value2?:number){
-  if(typeof value2 == 'undefined'){
-     let axis:string = this.vertical ? 'Y' : 'X';
+  if(typeof value2 === 'undefined' || value2 === null){
+      let axis:string = this.vertical ? 'Y' : 'X';
       this.percent = value1/this.max_value;
-    let whereTo = this.currentDimensions.width*this.percent;
-       this.fillTrack(whereTo);
-        this.applyCssToElement(this.sliderThumbLabel1,'transform',`scale(1) translate${axis}(${whereTo}px)`);
-  this.applyCssToElement(this.thumb1,'transform',`translate${axis}(${whereTo}px)`);  
+      let whereTo = this.currentDimensions.width*this.percent;
+      this.fillTrack(whereTo);
+      this.applyCssToElement(this.mover1,'transform',`translate${axis}(${whereTo}px)`);  
 }else{
-  if(value1>value2 || !value1 || !value2 || value1 == value2){
-    this.currentRange.from = this.defaultCurrentRange.from;
-    this.currentRange.to = this.defaultCurrentRange.to;
+  if(value1>value2 || value1 == value2){
+      this.currentRange.from = this.defaultCurrentRange.from;
+      this.currentRange.to = this.defaultCurrentRange.to;
   }else{
-
-   this.currentRange.from = value1/this.max_value*100;
-      this.currentRange.to = value2/this.max_value*100;
+      this.currentRange.from = (value1/this.max_value)*100;
+      this.currentRange.to = (value2/this.max_value)*100;
   }
-  this.updateRangeStyles();
+      this.updateRangeStyles();
   }
       
 
@@ -324,37 +333,31 @@ updatePositionFromValue(value1:number,value2?:number){
 
 
 updatePosition(position){
- this.cdr.detach();//changes will be detected once we set a value
+  this.cdr.detach();//changes will be detected once we set a value
   let axis:string = this.vertical ? 'Y' : 'X';
   let size = axis == 'Y' ? this.currentDimensions.height : this.currentDimensions.width;
   let offset = axis == 'Y' ? this.currentDimensions.top : this.currentDimensions.left;
-if(position && position.type == 'single'){
+if(position && position.type === 'single'){
   let clientPosition = axis == 'Y' ? position.event.clientY : position.event.clientX;
-let allowed = offset + size;
-if(clientPosition > allowed){
-  clientPosition = allowed;
-}
-let whereTo = Math.max(((clientPosition-offset)),0);
-this.percent = (whereTo/size);
-let percentage;
-if(this.isSliding){
-  this.value1 = this.getValueFromStep(this.percent);
-  percentage = whereTo;
-  this.fillTrack(percentage);
-  this.applyCssToElement(this.sliderThumbLabel1,'transform',`scale(1) translate${axis}(${whereTo}px)`);
-  this.applyCssToElement(this.thumb1,'transform',`translate${axis}(${whereTo}px)`);
-
-  this.valueChange.emit({ sliderId:this.uniqueId,value: this.value1,percent:+(this.percent*100).toFixed(0)});
-}
-}else if(position && position.type == 'range' && this.isSliding){
+  let allowed = offset + size;
+  clientPosition = this.clamp(clientPosition,0,allowed);
+  let whereTo = Math.max(((clientPosition-offset)),0);
+  this.percent = (whereTo/size);
+    if(this.isSliding){
+      this.value1 = this.getValueFromStep(this.percent);
+      this.fillTrack(whereTo);
+      this.applyCssToElement(this.mover1,'transform',`translate${axis}(${whereTo}px)`);
+      this.valueChange.emit({ sliderId:this.uniqueId,value: this.value1,percent:+(this.percent*100).toFixed(0)});
+    }
+}else if(position && position.type === 'range' && this.isSliding){
   let clientPosition = axis == 'Y' ? position.event.clientY : position.event.clientX;
   
-let start,end;
-start = this.pressed == 1 ? 'from' : 'to';
-end = this.pressed == 2 ? 'to' : 'from';
-let whereTo =  Math.max(Math.round((clientPosition-offset)),0);
-this.currentRange[start] = Number((((whereTo/size))*100));
-let difference =Math.max(this.currentRange.to,this.currentRange.from)-Math.min(this.currentRange.to,this.currentRange.from);
+  let start,end;
+  start = this.pressed == 1 ? 'from' : 'to';
+  end = this.pressed == 2 ? 'to' : 'from';
+  let whereTo =  Math.max(Math.round((clientPosition-offset)),0);
+  this.currentRange[start] = Number((((whereTo/size))*100));
+  let difference =Math.max(this.currentRange.to,this.currentRange.from)-Math.min(this.currentRange.to,this.currentRange.from);
  if(difference<this.min_distance){
    end == 'from' ? (this.currentRange.to +=(this.min_distance-difference)) : (this.currentRange.from -=(this.min_distance-difference));
     
@@ -370,12 +373,12 @@ let difference =Math.max(this.currentRange.to,this.currentRange.from)-Math.min(t
   this.updateRangeStyles(this.currentRange.from,this.currentRange.to);
    this.valueChange.emit({ sliderId:this.uniqueId,value: {from:this.value1,to:this.value2},
        percent:{from:this.currentRange.from,to:this.currentRange.to > 100 ? 100 : this.currentRange.to}});
-}  
+  }  
 }
 
-fillTrack(percentage){
+fillTrack(amount){
   let whatToFill = this.vertical ? 'height' : 'width';
-  this.renderer.setElementStyle(this.trackFill,whatToFill,`${percentage}px`);
+  this.renderer.setElementStyle(this.trackFill,whatToFill,`${amount}px`);
 }
 
 getCurrentSliderDimensions(){
@@ -387,16 +390,23 @@ init(){
   this.initColorPallete();
   this.initElements();
   this.applyColorPallete();
-this.updateSlider = new BehaviorSubject<IUpdateOperation>(null);
-let update = this.updateSlider.pipe(tap(val=>this.updatePosition(val))).subscribe();
-this.timer$ = this.timer.pipe(switchMap(val=>timer(800).pipe(tap((val)=>{
+  this.updateSlider = new BehaviorSubject<IUpdateOperation>(null);
+  let update = this.updateSlider.pipe(tap(val=>this.updatePosition(val))).subscribe();
+  this.timer$ = this.timer.pipe(switchMap(val=>timer(800).pipe(tap((val)=>{
   this.toggleThumbLabel(val);
   if(this.isMobileDevice){
     this.isActive = false;
   }
   this.cdr.detectChanges();
-}))));
-this.commonSubscriptions.push(update);
+  }))));
+  this.commonSubscriptions.push(update);
+}
+
+initColorPallete():void{
+this.colorMap=colors[this.color];
+if(!this.colorMap){
+  throw Error('Provided color doesn\'t exist in available colors. Check the documentation please.')
+}
 }
 
 initElements():void{
@@ -406,6 +416,8 @@ initElements():void{
   this.sliderThumbLabel1 = this.element.querySelector('.ngx-slider-moby-thumb-label1');
   this.thumb2 = this.element.querySelector('.ngx-slider-moby-thumb2');
   this.sliderThumbLabel2 = this.element.querySelector('.ngx-slider-moby-thumb-label2');
+  this.mover1 = this.element.querySelector('.ngx-slider-moby-thumb-container1');
+  this.mover2 = this.element.querySelector('.ngx-slider-moby-thumb-container2');
   if(this.range){
     this.initRangeStyles();
     this.thumbLabel2=true;
@@ -414,60 +426,75 @@ initElements():void{
   }
 }
 
-initColorPallete():void{
-this.colorMap=colors[this.color];
+initRangeStyles(){
+  this.renderer.setElementStyle(this.thumb2,'display','block');
 }
 
 applyColorPallete():void{
-  let elements = [{element:this.thumb1,alpha:false},{element:this.thumb2,alpha:false},{element:this.sliderThumbLabel1,alpha:true},
-  {element:this.sliderThumbLabel2,alpha:true},{element:this.trackFill,alpha:false}];
-  elements.forEach((element)=>{
+  let attachedElementsToInstance = this.attachToInstance(elementsAlphaConfig);
+  attachedElementsToInstance.forEach((element)=>{
     if(element.alpha){
        this.applyCssToElement(element.element,'background-color',this.colorMap.colorRgba);
        this.applyCssToElement(element.element,'border-color',this.colorMap.colorRgba);
     }else{
        this.applyCssToElement(element.element,'background-color',this.colorMap.colorRgb);
     }
-    
-
   })
  
 }
 
-initRangeStyles(){
-  this.renderer.setElementStyle(this.thumb2,'display','block');
+attachToInstance(elements:IElementWithAlpha[]):IElementWithAlpha[]{
+  return elements.map(el=>{
+    return {...el,element:this[el.element]}
+  })
 }
 
 updateRangeStyles(from = this.currentRange.from,to = this.currentRange.to){
-  to = to > 100 ? 100 : to;
-  let offsetLeft = from;
-  let offsetRight = 100-to;
-  
+  to = this.clamp(to,0,100);
+  let offsetsInPercents = this.getRangeOffsetsInPercents(from,to);
   let axis = this.vertical ? 'Y' : 'X';
-  let size = this.vertical ? this.currentDimensions.height : this.currentDimensions.width;
-  let offsetThumb1 = (size * (offsetLeft/100)).toFixed(0);
-  let offsetThumb2 = (size * (offsetRight/100)).toFixed(0);
- 
-  this.applyCssToElement(this.thumb1,'transform',`translate${axis}(${offsetThumb1}px`);
-  this.applyCssToElement(this.sliderThumbLabel1,'transform',`translate${axis}(${offsetThumb1}px`);
-  this.applyCssToElement(this.thumb2,'transform',`translate${axis}(-${offsetThumb2}px`);
-  this.applyCssToElement(this.sliderThumbLabel2,'transform',`translate${axis}(-${offsetThumb2}px`);
+  let offsetsInPixels = this.getRangeOffsetsInPixels(this.vertical,offsetsInPercents);
+  this.applyCssToElement(this.mover1,'transform',`translate${axis}(${offsetsInPixels.offsetThumb1}px`);
+  this.applyCssToElement(this.mover2,'transform',`translate${axis}(${offsetsInPixels.offsetThumb2}px`);
   this.updateRangeValues(from,to); 
 }
 
+clamp(value:number,min:number=0,max:number){
+  value = Number(value);
+  if(!isNaN(value) && typeof value === 'number' && max !== undefined){
+    return Math.min(Math.max(value,min),max);
+  }else{
+    return 0;
+  }
+}
+
+getRangeOffsetsInPercents(from:number,to:number):{offsetLeft:number,offsetRight:number}{
+  return {
+    offsetLeft:from,
+    offsetRight:to
+  }
+}
+
+getRangeOffsetsInPixels(isVertical:boolean=false,offsets:any):{offsetThumb1:number,offsetThumb2:number}{
+    let size = isVertical ? this.currentDimensions.height : this.currentDimensions.width;
+    let offsetThumb1 = Number((size * (offsets.offsetLeft/100)).toFixed(0));
+    let offsetThumb2 = Number((size * (offsets.offsetRight/100)).toFixed(0));
+    return {
+      offsetThumb1:offsetThumb1,
+      offsetThumb2:offsetThumb2
+    }
+}
+
 updateRangeValues(from,to){
-  from = from/100;
-  to=to/100;
-  this.value1 =this.getValueFromStep(from);
-  this.value2 =this.getValueFromStep(to);
-  
+  this.value1 =this.getValueFromStep(from/100);
+  this.value2 =this.getValueFromStep(to/100);
 }
 
 getValueFromStep(percentage){
-  let exactValue = Number((this.max_value*percentage).toFixed(1));
-   let closestValue = Math.round((exactValue - this.min_value)/ this.step)*100* this.step/100 + this.min_value;
-
-  let returnValue = exactValue >= this.max_value ? exactValue : closestValue;
+  percentage = percentage;
+  let exactValue = Number((this.max_value*percentage).toFixed(0));
+  let closestValue = Math.round((exactValue - this.min_value)/ this.step) * 100 * this.step/100 + this.min_value;
+  let returnValue = exactValue <= this.max_value ? exactValue : closestValue;
   return returnValue;
 }
 
@@ -655,8 +682,7 @@ handleKeydowns(key:number){
       let axis = this.vertical ? 'Y' : 'X';
         this.valueChange.emit({ sliderId:this.uniqueId,value: this.value1,percent:+(this.percent*100).toFixed(0)});
 
-      this.applyCssToElement(this.thumb1,'transform',`translate${axis}(${distance}px)`);
-      this.applyCssToElement(this.sliderThumbLabel1,'transform',`translate${axis}(${distance}px)`);
+      this.applyCssToElement(this.mover1,'transform',`translate${axis}(${distance}px)`);
  }
 }
 
