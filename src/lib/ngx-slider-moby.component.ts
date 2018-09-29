@@ -11,17 +11,22 @@ import {
   forwardRef,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Renderer,AfterViewInit
+  Renderer,AfterViewInit,
+  ContentChild,ContentChildren,QueryList,ViewChildren
 } from '@angular/core';
 import {UP_ARROW,DOWN_ARROW,RIGHT_ARROW,LEFT_ARROW} from './keycodes';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
-import {Observable,BehaviorSubject,timer,fromEvent,Subscription} from 'rxjs';
-import {tap,map,merge,takeUntil,mergeMap,take,
+import {Observable,BehaviorSubject,timer,fromEvent,Subscription,Subject} from 'rxjs';
+import {tap,map,merge,takeUntil,mergeMap,take,startWith,
   throttleTime,delay,switchMap,mapTo,filter,repeat} from 'rxjs/operators';
 import {elementsAlphaConfig,IElementWithAlpha} from './element-styles.config';
 import {colors} from './colors';
 
-export var sliderId = 0;
+
+import {NgxSliderTrack} from './cdk/ngx-slider-track';
+import {NgxSliderThumbContainer} from './cdk/ngx-slider-thumb-container';
+
+export let sliderId = 0;
 const MIN_AUTO_TICK_SEPARATION = 30;
 
 export const MD_SLIDER_VALUE_ACCESSOR: any = {
@@ -41,7 +46,7 @@ export interface IUpdateOperation{
 @Component({
   selector: 'ngx-slider-moby',
   encapsulation: ViewEncapsulation.None,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  //changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [MD_SLIDER_VALUE_ACCESSOR],
   styleUrls:['./ngx-slider-moby.component.css'],
   host: {
@@ -89,12 +94,13 @@ timer$:Observable<any>;
 element:any; //main
 thumb1:HTMLElement;
 thumb2:HTMLElement;
-track:HTMLElement;
 sliderThumbLabel1:HTMLElement;
 sliderThumbLabel2:HTMLElement;
-trackFill:HTMLElement;
-mover1:HTMLElement;
-mover2:HTMLElement;
+mover1:NgxSliderThumbContainer;
+mover2:NgxSliderThumbContainer;
+
+@ViewChildren(NgxSliderThumbContainer) movers:QueryList<NgxSliderThumbContainer>;
+
 //elements end
 
 //output events
@@ -148,10 +154,13 @@ get thumbLabel1(){
 }
 set thumbLabel1(val:boolean){
    if(this.showThumbLabels){
-      this._thumbLabel1 = val;  
+      this._thumbLabel1 = val;
+      if(this.mover1){
+        this.mover1.toggleThumblabel(val);
+      }  
    }   
 }
-_thumbLabel1:boolean = false;
+_thumbLabel1:boolean = true;
 
 
 get thumbLabel2(){
@@ -160,9 +169,12 @@ get thumbLabel2(){
 set thumbLabel2(val:boolean){
    if(this.showThumbLabels){
     this._thumbLabel2 = val;
+    if(this.mover2){
+        this.mover2.toggleThumblabel(val);
+      }  
    }
  }
-_thumbLabel2:boolean = false;
+_thumbLabel2:boolean = true;
 
 @Input()
 get min_value(){
@@ -240,11 +252,15 @@ ngOnInit(){
   ++sliderId;
   this.uniqueId = `slider-${sliderId}`;
    this.getCurrentSliderDimensions();
-  this.init(); 
-  this.onResize();
+
+  
 }
 
 ngAfterViewInit(){
+   [this.mover1,this.mover2] = this.movers.toArray();
+   
+   this.init(); 
+ // this.onResize();
     this.getCurrentSliderDimensions();
     if(this.range){
       this.updatePositionFromValue(this.value1,this.value2);
@@ -277,8 +293,7 @@ updatePositionFromValue(value1:number,value2?:number){
       let axis:string = this.vertical ? 'Y' : 'X';
       this.percent = value1/this.max_value;
       let whereTo = this.currentDimensions.width*this.percent;
-      this.fillTrack(whereTo);
-      this.applyCssToElement(this.mover1,'transform',`translate${axis}(${whereTo}px)`);  
+   //   this.applyCssToElement(this.mover1,'transform',`translate${axis}(${whereTo}px)`);  
 }else{
   if(value1>value2 || value1 == value2){
       this.currentRange.from = this.defaultCurrentRange.from;
@@ -289,11 +304,7 @@ updatePositionFromValue(value1:number,value2?:number){
   }
       this.updateRangeStyles();
   }
-      
-
-
 }
-
 
 updatePosition(position:any){
   this.cdr.detach();//changes will be detected once we set a value
@@ -308,13 +319,11 @@ if(position && position.type === 'single'){
   this.percent = (whereTo/size);
     if(this.isSliding){
       this.value1 = this.getValueFromStep(this.percent);
-      this.fillTrack(whereTo);
-      this.applyCssToElement(this.mover1,'transform',`translate${axis}(${whereTo}px)`);
+    //  this.applyCssToElement(this.mover1,'transform',`translate${axis}(${whereTo}px)`);
       this.valueChange.emit({ sliderId:this.uniqueId,value: this.value1,percent:+(this.percent*100).toFixed(0)});
     }
 }else if(position && position.type === 'range' && this.isSliding){
-  let clientPosition = axis == 'Y' ? position.event.clientY : position.event.clientX;
-  
+  let clientPosition = axis == 'Y' ? position.event.clientY : position.event.clientX;  
   let start='from';
   let end = 'to';
   start = this.pressed == 1 ? 'from' : 'to';
@@ -341,11 +350,6 @@ if(position && position.type === 'single'){
   }  
 }
 
-fillTrack(amount:number){
-  let whatToFill = this.vertical ? 'height' : 'width';
-  this.renderer.setElementStyle(this.trackFill,whatToFill,`${amount}px`);
-}
-
 getCurrentSliderDimensions(){
   let element:HTMLElement = this.element.querySelector('.ngx-slider-moby-container');
   this.currentDimensions = element.getBoundingClientRect();
@@ -356,15 +360,16 @@ init(){
   this.initElements();
   this.applyColorPallete();
   this.updateSlider = new BehaviorSubject<IUpdateOperation | any>(null);
-  let update = this.updateSlider.pipe(tap(val=>this.updatePosition(val))).subscribe();
-  this.timer$ = this.timer.pipe(switchMap(val=>timer(800).pipe(tap((val)=>{
-  this.toggleThumbLabel(val);
+  let updateSub = this.updateSlider.pipe(tap(val=>this.updatePosition(val))).subscribe();
+  this.timer$ = this.timer.pipe(switchMap((_:any)=>timer(800).pipe(tap((val)=>{
+  this.toggleThumbLabel();
   if(this.isMobileDevice){
     this.isActive = false;
   }
   this.cdr.detectChanges();
   }))));
-  this.commonSubscriptions.push(update);
+  let timerSub = this.timer$.subscribe();
+  this.commonSubscriptions.push(timerSub,updateSub);
 }
 
 initColorPallete():void{
@@ -376,14 +381,11 @@ if(!this.colorMap){
 }
 
 initElements():void{
-  this.track = this.element.querySelector('.ngx-slider-moby-track-container');
-  this.trackFill = this.element.querySelector('.ngx-slider-moby-track-fill');
   this.thumb1 = this.element.querySelector('.ngx-slider-moby-thumb1');
   this.sliderThumbLabel1 = this.element.querySelector('.ngx-slider-moby-thumb-label1');
   this.thumb2 = this.element.querySelector('.ngx-slider-moby-thumb2');
   this.sliderThumbLabel2 = this.element.querySelector('.ngx-slider-moby-thumb-label2');
-  this.mover1 = this.element.querySelector('.ngx-slider-moby-thumb-container1');
-  this.mover2 = this.element.querySelector('.ngx-slider-moby-thumb-container2');
+
   if(this.range){
     this.initRangeStyles();
     this.thumbLabel2=true;
@@ -393,17 +395,17 @@ initElements():void{
 }
 
 initRangeStyles(){
-  this.renderer.setElementStyle(this.thumb2,'display','block');
+//  this.renderer.setElementStyle(this.thumb2,'display','block');
 }
 
 applyColorPallete():void{
   let attachedElementsToInstance = this.attachToInstance(elementsAlphaConfig);
   attachedElementsToInstance.forEach((element)=>{
     if(element.alpha){
-       this.applyCssToElement(element.element,'background-color',this.colorMap.colorRgba);
-       this.applyCssToElement(element.element,'border-color',this.colorMap.colorRgba);
+     //  this.applyCssToElement(element.element,'background-color',this.colorMap.colorRgba);
+     //  this.applyCssToElement(element.element,'border-color',this.colorMap.colorRgba);
     }else{
-       this.applyCssToElement(element.element,'background-color',this.colorMap.colorRgb);
+     //  this.applyCssToElement(element.element,'background-color',this.colorMap.colorRgb);
     }
   })
  
@@ -422,8 +424,8 @@ updateRangeStyles(from = this.currentRange.from,to = this.currentRange.to){
   let offsetsInPercents = this.getRangeOffsetsInPercents(from,to);
   let axis = this.vertical ? 'Y' : 'X';
   let offsetsInPixels = this.getRangeOffsetsInPixels(this.vertical,offsetsInPercents);
-  this.applyCssToElement(this.mover1,'transform',`translate${axis}(${offsetsInPixels.offsetThumb1}px`);
-  this.applyCssToElement(this.mover2,'transform',`translate${axis}(${offsetsInPixels.offsetThumb2}px`);
+//  this.applyCssToElement(this.mover1,'transform',`translate${axis}(${offsetsInPixels.offsetThumb1}px`);
+ // this.applyCssToElement(this.mover2,'transform',`translate${axis}(${offsetsInPixels.offsetThumb2}px`);
   this.updateRangeValues(from,to); 
 }
 
@@ -477,39 +479,40 @@ initRangeObs(){
   let onmouseup = fromEvent(document,'mouseup').pipe(tap(val=>{
   this.isSliding = false;
 }),mapTo(this.pressed),switchMap(val=>this.timer$));
-let onmousedown1 = fromEvent(this.thumb1,'mousedown').pipe(tap(val=>{
-  this.pressed = 1;
-  this.isActive = true;
-  this.isSliding = true;
-}));
-let onmousedown2 = fromEvent(this.thumb2,'mousedown').pipe(tap(val=>{
-  this.pressed = 2;
-  this.isActive = true;
-  this.isSliding = true;
-}));
-let onmousemove= fromEvent(this.element,'mousemove')
-  .pipe(takeUntil(onmouseup),delay(75),tap(val=>this.updateSlider.next({type:'range',event:val})));
+// let onmousedown1 = fromEvent(this.thumb1,'mousedown').pipe(tap(val=>{
+//   this.pressed = 1;
+//   this.isActive = true;
+//   this.isSliding = true;
+// }));
+// let onmousedown2 = fromEvent(this.thumb2,'mousedown').pipe(tap(val=>{
+//   this.pressed = 2;
+//   this.isActive = true;
+//   this.isSliding = true;
+// }));
+// let onmousemove= fromEvent(this.element,'mousemove')
+//   .pipe(takeUntil(onmouseup),delay(75),tap(val=>this.updateSlider.next({type:'range',event:val})));
  let onmousedownsub1 =  onmousedown1.pipe(mergeMap(value=>onmousemove)).subscribe();
  let onmousedownsub2 =  onmousedown2.pipe(mergeMap(value=>onmousemove)).subscribe();
  this.subscriptions.push(onmousedownsub2,onmousedownsub2);
 }
 
-initDefaultObs(){
-  let onclick = fromEvent(this.track,'click').pipe(tap(val=>{
-     this.element.focus();
-     this.isSliding=true;
+onTrackClick(val){
+    this.element.focus();
+    this.isSliding=true;
     this.updateSlider.next({type:'single',event:val});
-     this.toggleThumbLabel(1);
+    this.toggleThumbLabel();
+    this.timer.next(1);
     this.cdr.detectChanges();
-   }),mapTo(1),switchMap(val=>this.timer$));
+}
 
+initDefaultObs(){
 let onmouseup = fromEvent(document,'mouseup').pipe(tap(val=>{
   this.isSliding=false;
 }),mapTo(this.pressed),switchMap(val=>this.timer$));
 
 let onmousedown = fromEvent(this.thumb1,'mousedown').pipe(tap(val=>{
   this.pressed = 1;
-  this.toggleThumbLabel(this.pressed);
+  this.toggleThumbLabel();
   this.isSliding=true;
   this.isActive = true;
 }));
@@ -529,12 +532,10 @@ let keydown = fromEvent(this.element,'keydown').pipe(filter((event:KeyboardEvent
   this.cdr.detectChanges();
 }),takeUntil(keyup),repeat()).subscribe();
 
-
   let onmousemove= fromEvent(document,'mousemove')
   .pipe(takeUntil(onmouseup),throttleTime(200),tap(val=>this.updateSlider.next({type:'single',event:val})));
  let onmousedownsub =  onmousedown.pipe(mergeMap(value=>onmousemove)).subscribe();
- let onclicksub = onclick.subscribe();
- this.subscriptions.push(onclicksub,onmousedownsub);
+ this.subscriptions.push(onmousedownsub);
 }
 
 //mobile section
@@ -553,7 +554,7 @@ initMobileDefaultObs(){
 
 let ontouchstart = fromEvent(this.thumb1,'touchstart').pipe(tap(val=>{
   this.pressed = 1;
-  this.toggleThumbLabel(this.pressed);
+  this.toggleThumbLabel();
   this.toggleStates();
 }));
 
@@ -574,13 +575,13 @@ initMobileRangeObs(){
 
 let ontouchstart1 = fromEvent(this.thumb1,'touchstart').pipe(tap(val=>{
   this.pressed = 1;
-  this.toggleThumbLabel(this.pressed);
+  this.toggleThumbLabel();
   this.isActive = true;
   this.isSliding = true;
 }));
 let ontouchstart2 = fromEvent(this.thumb2,'touchstart').pipe(tap(val=>{
   this.pressed = 2;
-  this.toggleThumbLabel(this.pressed);
+  this.toggleThumbLabel();
   this.isActive = true;
   this.isSliding = true;
 }));
@@ -588,8 +589,8 @@ let ontouchmove= fromEvent(document,'touchmove')
   .pipe(takeUntil(ontouchend),delay(350),
     map((event:any)=>({clientX:event.touches[0].clientX,clientY:event.touches[0].clientY})),
     tap(val=>this.updateSlider.next({type:'range',event:val})));
- let ontouchstartsub1 =  ontouchstart1.pipe(mergeMap(value=>ontouchmove)).subscribe();
-  let ontouchstartsub2 =  ontouchstart2.pipe(mergeMap(value=>ontouchmove)).subscribe();
+ let ontouchstartsub1 = ontouchstart1.pipe(mergeMap(value=>ontouchmove)).subscribe();
+  let ontouchstartsub2 = ontouchstart2.pipe(mergeMap(value=>ontouchmove)).subscribe();
   this.mobileSubscriptions.push(ontouchstartsub1,ontouchstartsub2);
 }
 
@@ -645,11 +646,11 @@ handleKeydowns(key:number){
     break;
   }
      
-      this.fillTrack(distance);
+     
       let axis = this.vertical ? 'Y' : 'X';
         this.valueChange.emit({ sliderId:this.uniqueId,value: this.value1,percent:+(this.percent*100).toFixed(0)});
 
-      this.applyCssToElement(this.mover1,'transform',`translate${axis}(${distance}px)`);
+     // this.applyCssToElement(this.mover1,'transform',`translate${axis}(${distance}px)`);
  }
 }
 
@@ -692,7 +693,7 @@ toggleIsSliding(){
   this.isSliding = !this.isSliding;
 }
 
-toggleThumbLabel(which?:number){
+toggleThumbLabel(){
   if(!this.range){
  this.thumbLabel1 ? this.thumbLabel1 = false : this.thumbLabel1 = true;
     }
